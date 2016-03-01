@@ -46,10 +46,10 @@ Wedge = [Wedge(1) Wedge Wedge(end)];
  
     % LOAD IN THE SNOWMASS CREEK TOPOGRAPHY
     load SC_new_profile.txt 
-        N_data = 625
+        N_data = 850;
     % without SMOOTHING FUNCTION
     
-    zb = transpose((SC_new_profile(1:3.125:end))); 
+    zb = transpose((SC_new_profile(1:N_data/step:end))); 
     
     % or: ADD A SMOOTHING FUNCTION
     
@@ -67,11 +67,11 @@ Wedge = [Wedge(1) Wedge Wedge(end)];
     ELA0      = 3400;      % SET THE AVERAGE ELA
     
     
-    sigma_ELA = 200;       % uncertainty in the ELA
+    sigma_ELA = 250;       % uncertainty in the ELA
  
     
     dbdz = 0.005;  % m/y/m, typically ~0.01, 
-                   % for snowmass, we might use: 
+                   % for snowmass, we might use:  0.005-0.008
                    % for Arkansas case, we used 0.0027 (Brugger 2010)
     
                            
