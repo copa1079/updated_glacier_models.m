@@ -315,7 +315,7 @@ if rem(t(i),tplot)==0
          plot(x/1000,(max(ELA))*ones(size(x)),'r--','linewidth',1.5)
 %         plot((t/1000)+tmin,ELA,'k.','linewidth',1)
             grid on
-            legend('mean ELA',ELA0_text2,'ELA ( t ) _i','range')
+            legend('mean ELA',ELA0_text2,'ELA ( t ) _i')
 
          ylabel('ELA [m]','fontname','arial','fontsize',font)
          xlabel('Time [ka]','fontname','arial','fontsize',font)
