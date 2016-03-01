@@ -33,7 +33,7 @@ slide = 0.5;        % ratio of sliding speed to internal deformation speed
  
 %  set up distance array
  
-    xmax  = 28500;
+    xmax  = 28512;    % changes based on what data you'd like to import
        dx = xmax/step;
         x = dx/2:dx:xmax-(dx/2);
     xedge = 0:dx:xmax;
@@ -41,13 +41,13 @@ slide = 0.5;        % ratio of sliding speed to internal deformation speed
 % valley width as a function of distance downvalley (approximated)
  
 % turn this off by setting Wmin=W0;
-tributaries = 3; % how many main glacial valleys in the top?
-W0    = 1000*tributaries;
-Wstar = 5000; % how quickly does the geometry shrink?
-Wmin  = 1000; % what is the minimum valley width?
-W     = Wmin + (W0-Wmin)*exp(-x./Wstar);
-Wedge = W(1:end-1)+0.5*diff(W); % interpolates valley width to cell edges
-Wedge = [Wedge(1) Wedge Wedge(end)];
+  tributaries = 3; % how many main glacial valleys in the top?
+  W0    = 1000*tributaries;
+  Wstar = 5000; % how quickly does the geometry shrink?
+  Wmin  = 1000; % what is the minimum valley width?
+  W     = Wmin + (W0-Wmin)*exp(-x./Wstar);
+  Wedge = W(1:end-1)+0.5*diff(W); % interpolates valley width to cell edges
+  Wedge = [Wedge(1) Wedge Wedge(end)];
  
     % LOAD IN THE CLEAR CREEK TOPOGRAPHY
     load CC_new_profile.txt 
@@ -328,11 +328,3 @@ if rem(t(i),tplot)==0
 end
  
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% END %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% extra notes:
-%
-%  how to use the subplot tool: 
-%
-%        subplot('position',[left bottom width height])
-%
