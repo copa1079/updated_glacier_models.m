@@ -185,7 +185,7 @@ if rem(t(i),tplot)==0
     plot(x/1000,(max(ELA))*ones(size(x)),'r--','linewidth',1.5)
     plot(x/1000,ELA0*ones(size(x)),'b--','linewidth',2)
     plot(x/1000,(min(ELA))*ones(size(x)),'r--','linewidth',1.5)
-    axis([0 xmax/1000 zmin-border zmax+border])
+    axis([0 (xmax/1000)+1 zmin-border zmax+border])
     title('Snowmass Creek Valley paleoglacier, LGM numerical reconstruction') 
     xlabel('Horizontal distance [km]','fontname','arial','fontsize',font)
     ylabel('Elevation [m]','fontname','arial','fontsize',font) 
