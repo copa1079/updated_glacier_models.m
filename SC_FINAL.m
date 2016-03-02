@@ -36,17 +36,17 @@ slide = 0.5;        % ratio of sliding speed to internal deformation speed
 % valley width as a function of distance downvalley (approximated)
  
 % turn this off by setting Wmin=W0;
-tributaries = 4; % how many main glacial valleys in the top?
+tributaries = 5; % how many main glacial valleys in the top?
 W0    = 1000*tributaries;
-Wstar = 4500; % how quickly does the geometry shrink? SLOWER THAN NORMAL
-Wmin  = 1200; % what is the minimum valley width?
+Wstar = 3000; % how quickly does the geometry shrink? SLOWER THAN NORMAL
+Wmin  = 1500; % what is the minimum valley width?
 W     = Wmin + (W0-Wmin)*exp(-x./Wstar);
 Wedge = W(1:end-1)+0.5*diff(W); % interpolates valley width to cell edges
 Wedge = [Wedge(1) Wedge Wedge(end)];
  
     % LOAD IN THE SNOWMASS CREEK TOPOGRAPHY
     load SC_new_profile.txt 
-        N_data = 850;
+    N_data = 850;
     % without SMOOTHING FUNCTION
     
     zb = transpose((SC_new_profile(1:N_data/step:end))); 
@@ -64,18 +64,18 @@ Wedge = [Wedge(1) Wedge Wedge(end)];
 %  meteorology and mass balance
  
 
-    ELA0      = 3400;      % SET THE AVERAGE ELA
+    ELA0      = 3330;      % SET THE MIDDLE ELA
     
     
-    sigma_ELA = 250;       % uncertainty in the ELA
+    sigma_ELA = 400;       % how much focing does the ELA feel?
  
     
-    dbdz = 0.005;  % m/y/m, typically ~0.01, 
+    dbdz = 0.008;  % m/y/m, typically ~0.01, 
                    % for snowmass, we might use:  0.005-0.008
                    % for Arkansas case, we used 0.0027 (Brugger 2010)
     
                            
-    bcap = 1.5;            % m/yr, usually 1.25-2.00
+    bcap = 2.00;            % m/yr, usually 1.25-2.00
     
     b0 = dbdz*(z-ELA0);
     b0 = min(b0,bcap); 
@@ -185,7 +185,7 @@ if rem(t(i),tplot)==0
     plot(x/1000,(max(ELA))*ones(size(x)),'r--','linewidth',1.5)
     plot(x/1000,ELA0*ones(size(x)),'b--','linewidth',2)
     plot(x/1000,(min(ELA))*ones(size(x)),'r--','linewidth',1.5)
-    axis([0 (xmax/1000)+1 zmin-border zmax+border])
+    axis([0 20 zmin-border zmax+border])
     title('Snowmass Creek Valley paleoglacier, LGM numerical reconstruction') 
     xlabel('Horizontal distance [km]','fontname','arial','fontsize',font)
     ylabel('Elevation [m]','fontname','arial','fontsize',font) 
@@ -206,7 +206,7 @@ if rem(t(i),tplot)==0
     plot(b,ELA0*ones(size(x)),'b--','linewidth',2)
     plot(b,(max(ELA))*ones(size(x)),'r--','linewidth',1.5)
     plot(b,(min(ELA))*ones(size(x)),'r--','linewidth',1.5)
-            legend('b(z)','zero line','location','southeast')
+            legend('b(z)','zero line')
     axis([minb 1.5*bcap zmin-border zmax+border])
     xlabel('b(z) [m/yr]','fontname','arial','fontsize',font)
     title('Mass balance')
@@ -214,11 +214,11 @@ if rem(t(i),tplot)==0
             % PLOT THE TIME (within the mass balance domain)
             time=num2str((t(i)/1000)+tmin);
             timetext=strcat('     time  =',time,'  ka');
-            text(-35,3880,timetext,'fontsize',font)
+            text(-60,3900,timetext,'fontsize',font)
             % PLOT THE ELA AVERAGE
             averageELA=num2str(round(ELA(i)));
             averageELAtext=strcat('     ELA  =',averageELA,'  m');
-            text(-35,3800,averageELAtext,'fontsize',font)    
+            text(-60,3800,averageELAtext,'fontsize',font)    
                 hold off
                 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%       
@@ -232,9 +232,9 @@ if rem(t(i),tplot)==0
     subplot('position',[0.06 0.1 0.18 0.35])
     plot(xedge/1000,Q/1000,'c','linewidth',3)
         hold on
-    plot(x/1000,(Qanal/1000)*correction_cumsum,'b:','linewidth',3)
-    axis([0 xmax/1000 0 20])
-        legend('total ice discharge','integrated b(z)*1.5')
+    plot(x/1000,(Qanal/1000)*2,'b:','linewidth',3)
+    axis([0 20 0 35])
+        legend('total ice discharge','integrated b(z)*2')
     title('Q(x) (non-uniform width)')
     xlabel('Horizontal distance [km]','fontname','arial','fontsize',font)
     ylabel('Discharge [10^3 m^2/yr]','fontname','arial','fontsize',font)
@@ -243,21 +243,14 @@ if rem(t(i),tplot)==0
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PLOTS THE ICE THICKNESS
-    moraine_start = 20000;
-    x_moraine = 19000:0.6:25000;
-    z_moraine = 275:0.01:375;
-        subplot('position',[0.3 0.1 0.18 0.35])
+    subplot('position',[0.3 0.1 0.18 0.35])
     plot(x/1000,H,'c','linewidth',3)
          hold on
-    plot(x/1000,tracking_thickness+5,'k:','linewidth',2) % lateral moraine heights
-    plot(x_moraine/1000,fliplr(z_moraine),'k','linewidth',1.5)
-            % clear creek lateral moraines
-    plot(x/1000,380*ones(length(H)),'k--','linewidth',1.5) 
-            % max thickness due to ice bulge (+80 m) 
-            % and modern sedimentation (+50 m)
-        legend('total thickness','maximum extent','end lateral moraines',...
-            'theoretical max thickness')
-    axis([0 xmax/1000 0 575])
+    plot(x/1000,tracking_thickness+5,'k:','linewidth',2)
+    plot(x/1000,250*ones(length(H)),'k--','linewidth',1.5)
+        legend('total thickness','maximum extent',...
+            'max thickness at 18 km')
+    axis([0 20 0 450])
     title('Thickness of the glacial ice')
     xlabel('Horizontal distance [km]','fontname','arial','fontsize',font)
     ylabel('Ice thickness [m]','fontname','arial','fontsize',font)
@@ -288,7 +281,7 @@ if rem(t(i),tplot)==0
          plot(x/1000,(max(ELA))*ones(size(x)),'r--','linewidth',1.5)
 %         plot((t/1000)+tmin,ELA,'k.','linewidth',1)
             grid on
-            legend('mean ELA',ELA0_text2,'ELA ( t ) _i','range')
+            legend('mean ELA',ELA0_text2,'ELA ( t ) _i')
 
          ylabel('ELA [m]','fontname','arial','fontsize',font)
          xlabel('Time [ka]','fontname','arial','fontsize',font)
