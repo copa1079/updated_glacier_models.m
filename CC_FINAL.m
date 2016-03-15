@@ -1,4 +1,4 @@
-%%   DATE UPDATED: March 1st, 2016
+%%   DATE UPDATED: March 14th, 2016
  
 %%   CLEANED UP GLACIER MODEL FOR CLEAR CREEK
 %
@@ -9,15 +9,10 @@
 %    AUTHORS:    COLE C. PAZAR    and   ROBERT S. ANDERSON
 %
     clear global
-%    close all
     clearvars  % clear variables each run
-    figure(1)  % main figure for animation of the glacier, 
-               % must be in full screen for best resolution !
+    figure(1)  % main figure for animation of the glacier
           clf
-%    figure(2)  % tracking dam height
-%         clf
-%    figure(3)  % delta O 18 curve
-%         clf
+
 %% initialize
  
 %  constants
@@ -42,6 +37,7 @@ slide = 0.5;        % ratio of sliding speed to internal deformation speed
  
 % turn this off by setting Wmin=W0;
   tributaries = 3; % how many main glacial valleys in the top?
+  
   W0    = 1000*tributaries;
   Wstar = 5000; % how quickly does the geometry shrink?
   Wmin  = 1000; % what is the minimum valley width?
@@ -57,28 +53,28 @@ slide = 0.5;        % ratio of sliding speed to internal deformation speed
     zb = transpose((CC_new_profile(1:5:end))); 
     
     % or: ADD A SMOOTHING FUNCTION
-    
     % zb = transpose(smooth(CC_new_profile(1:5:end))); 
         
     H = zeros(size(x)); % ice thickness array
+    
+    Q = zeros(size(x)); % pre-allocation discharge array
     
     z = zb+H; % update topography for the glacier
  
     zmax = max(zb);
     zmin = min(zb);
+    
 %  meteorology and mass balance
- 
 
-    ELA0      = 3400;      % SET THE AVERAGE ELA
+    ELA0      = 3500;      % SET THE AVERAGE ELA
     
     
     sigma_ELA = 200;       % uncertainty in the ELA
  
     
-    dbdz = 0.003;  % m/y/m, typically ~0.01, but for Arkansas case,
-                   % we use 0.0027 in the literature because (Brugger 2010)
-    
-                           
+    dbdz = 0.01;  % m/y/m, typically ~0.01, but for Arkansas case,
+
+
     bcap = 1.5;            % m/yr, usually 1.25-2.00
     
     b0 = dbdz*(z-ELA0);
@@ -137,6 +133,10 @@ slide = 0.5;        % ratio of sliding speed to internal deformation speed
     
     zlateral = zb; % tracks for max lateral moraine topography
     tracking_thickness = H; % tracks for max ice thickness
+    
+ correction_cumsum = tributaries/2; % corrects the mass balance 
+                                    % for the valley's geometry
+    
     % time counter
                tic
     
@@ -152,14 +152,14 @@ Hedge = H(1:end-1)+0.5*diff(H); % interpolates ice thickness to cell edges
 S = abs(diff(z)/dx);            % slope of ice surface calc. at cell edges
  
 Udef = (A/5).*((rho_i*g*S).^3).*(Hedge.^4); % mean defm speed
-Q = [];
+%Q = [ ];
 Q = (A/5).*((rho_i*g*S).^3).*(Hedge.^5);    % internal deformation dischar.
 Qsl = slide * Udef.*Hedge;                  % sliding discharge
 Q = Q + Qsl;                                % update the new discharge
 Q =[0 Q 0];                                 % takes care of the edge B.C.
  
   dHdt = b - (1./W).*(diff(Q.*Wedge)/dx); % continuity allowing W to vary
-% dHdt = b - (diff(Q)/dx);                % ice continuity w/out varying W
+
   H = H + (dHdt*dt);                      % updates ice thickness
   H = max(H,0);                           % takes care of the edge B.C.
  
@@ -167,40 +167,20 @@ Q =[0 Q 0];                                 % takes care of the edge B.C.
  
      glacier = find(H>0);        % define the glacier
  
-     zlateral = max(zlateral,z); % find the maximum extent of the ice 
-                                 % (approximates for the moraines)
+    % (approximates for the moraines)
 
-     tracking_thickness = max(tracking_thickness,H);
-     
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% BROKEN AREA OF THE CODE:  
-%
-%   term = find(zlateral==0); % terminus????
-%   dam_ht(i)=max(0,dam_ht(i)); 
-%
-%
-%     if isempty(term)
-%         x_terminus=0.01;
-%     else
-%         x_terminus=(xmax-(x(term)/10))/1000;
-%     end
-%
-%
-%     if (term(i)>xdambase)
-%         dam_ht(i)=zb(term(i))-zdambase;
-%     else
-%         dam_ht(i)=0;
-%     end
-% 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    zlateral = max(zlateral,z); % find the maximum extent of the ice 
+    moraine_start = 20000;
+    x_moraine = 19000:0.6:25000;
+    z_moraine = 275:0.01:375;
+    tracking_thickness = max(tracking_thickness,H);
 
 % plotting for figure 1:
  
 if rem(t(i),tplot)==0
-    
+
     nframe=nframe+1%;
-    
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PLOTS THE GLACIER AND TOPOGRAPHY
     figure(1)
@@ -245,7 +225,7 @@ if rem(t(i),tplot)==0
             % PLOT THE ELA AVERAGE
             averageELA=num2str(round(ELA(i)));
             averageELAtext=strcat('     ELA  =',averageELA,'  m');
-            text(-35,3800,averageELAtext,'fontsize',font)    
+            text(-50,3800,averageELAtext,'fontsize',font)    
                 hold off
                 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%       
@@ -253,9 +233,6 @@ if rem(t(i),tplot)==0
         Qanal = (cumsum(b)*dx);      % steady state ice discharge
         Qanal = max(Qanal,0);        % fixes B.C.
     % PLOTS THE ICE DISCHARGE
-    
-        correction_cumsum = tributaries/2; % corrects the mass balance 
-                                           % for the valley's geometry
     subplot('position',[0.06 0.1 0.18 0.35])
     plot(xedge/1000,Q/1000,'c','linewidth',3)
         hold on
@@ -270,9 +247,6 @@ if rem(t(i),tplot)==0
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PLOTS THE ICE THICKNESS
-    moraine_start = 20000;
-    x_moraine = 19000:0.6:25000;
-    z_moraine = 275:0.01:375;
         subplot('position',[0.3 0.1 0.18 0.35])
     plot(x/1000,H,'c','linewidth',3)
          hold on
@@ -290,20 +264,7 @@ if rem(t(i),tplot)==0
     ylabel('Ice thickness [m]','fontname','arial','fontsize',font)
     set(gca,'fontsize',font,'fontname','arial') 
         hold off
-   
-     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % TRACKING THE TERMINUS POSITION OVER TIME
-%     x_terminus = interp1(x_terminus,t,'spline');
-%     subplot('position',[0.8 0.1 0.15 0.3])
-%     plot((t(i)/1000)+tmin,x_terminus(i),'ko','linewidth',5)
-%         hold on   
-%         grid on
-%     xlabel('time [ka]','fontname','arial','fontsize',font)
-%     ylabel('terminus position [m]','fontname','arial','fontsize',font)
-%     title('Glacier length over time')
-%     set(gca,'fontsize',font,'fontname','arial')  
-%     axis([tmin-0.5 (tmax/1000)+tmin+0.5 0 max(x_terminus)])
-    
+        
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % PRESCRIBED CLIMATE
          subplot('position',[0.55 0.1 0.4 0.35])
@@ -316,15 +277,13 @@ if rem(t(i),tplot)==0
 %         plot((t/1000)+tmin,ELA,'k.','linewidth',1)
             grid on
             legend('mean ELA',ELA0_text2,'ELA ( t ) _i')
-
          ylabel('ELA [m]','fontname','arial','fontsize',font)
          xlabel('Time [ka]','fontname','arial','fontsize',font)
-
          title('Model ELA(t) approximated to the \delta^1^8O record')
          set(gca,'fontsize',font,'fontname','arial')  
          axis([tmin (tmax/1000)+tmin min(ELA)-5 max(ELA)+5])
         
-         pause(0.01)
+         pause(0.05)
 end
  
 end
